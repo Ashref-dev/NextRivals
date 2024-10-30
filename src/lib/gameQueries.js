@@ -1,6 +1,11 @@
 import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
+// Add connection test
+prisma.$connect()
+  .then(() => console.log('Database connected successfully'))
+  .catch((error) => console.error('Database connection failed:', error));
+
 export async function getAllGames() {
   return await prisma.game.findMany({});
 }
@@ -81,20 +86,39 @@ export async function getGamesBySelectedCategories(categoryIds) {
 }
 
 export async function getGamesByCategoryId(categoryId) {
-  return await prisma.category.findUnique({
-    where: {
-      id: categoryId,
-    },
-    select: {
-      title: true,
-      slug: true,
-      games: {
-        where: {
-          published: true,
-        },
-        take: 8,
+  return handlePrismaOperation(async () => {
+    const category = await prisma.category.findUnique({
+      where: {
+        id: categoryId,
       },
-    },
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        games: {
+          where: {
+            published: true,
+          },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            image: true,
+            published: true
+          },
+          take: 8,
+        },
+      },
+    });
+
+    console.log('Retrieved category:', JSON.stringify(category, null, 2));
+
+    if (!category) {
+      console.error(`No category found with ID: ${categoryId}`);
+      return null;
+    }
+
+    return category;
   });
 }
 

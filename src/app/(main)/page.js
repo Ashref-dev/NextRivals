@@ -12,14 +12,11 @@ export default async function Home() {
       getGamesByCategoryId(1)
     ]);
 
-    if (!categories) {
-      console.error('Failed to fetch categories');
-      return <div>Error: Could not load categories</div>;
-    }
+    console.log('Categories:', categories?.length);
+    console.log('Category:', category);
 
-    if (!category) {
-      console.error('Failed to fetch category with ID 1');
-      return <div>Error: Could not load featured category</div>;
+    if (!categories?.length) {
+      return <div>No categories available</div>;
     }
 
     const selectedCategoryIds = [1,2,5];
@@ -29,7 +26,7 @@ export default async function Home() {
       <>
         <HeroSlider />
         <CategorySlider categories={categories} />
-        <GameCategory category={category} />
+        {category && <GameCategory category={category} />}
       </>
     );
   } catch (error) {
