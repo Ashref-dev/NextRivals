@@ -12,14 +12,14 @@ export default async function Home() {
       getGamesByCategoryId(1)
     ]);
 
-    if (!categories || !Array.isArray(categories)) {
-      console.error('Categories data is invalid:', categories);
-      return <div>Error: Invalid categories data</div>;
+    if (!categories) {
+      console.error('Failed to fetch categories');
+      return <div>Error: Could not load categories</div>;
     }
 
-    if (!category || !category.title) {
-      console.error('Category data is invalid:', category);
-      return <div>Error: Invalid category data</div>;
+    if (!category) {
+      console.error('Failed to fetch category with ID 1');
+      return <div>Error: Could not load featured category</div>;
     }
 
     const selectedCategoryIds = [1,2,5];
@@ -28,12 +28,12 @@ export default async function Home() {
     return (
       <>
         <HeroSlider />
-        {categories.length > 0 && <CategorySlider categories={categories} />}
-        {category && category.games && <GameCategory category={category} />}
+        <CategorySlider categories={categories} />
+        <GameCategory category={category} />
       </>
     );
   } catch (error) {
-    console.error('Error loading home page:', error);
+    console.error('Error in Home page:', error);
     return <div>Error loading page content</div>;
   }
 }
