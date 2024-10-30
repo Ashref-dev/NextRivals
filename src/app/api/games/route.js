@@ -21,7 +21,7 @@ export async function POST(request) {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
 
-    // Create the game
+    // Create the game with all required fields
     const game = await prisma.game.create({
       data: {
         title: data.title,
@@ -29,12 +29,16 @@ export async function POST(request) {
         game_url: data.game_url || '',
         image: data.image || '',
         published: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
         // Add category if provided
         ...(data.category && {
           categories: {
             create: {
               title: data.category,
-              slug: data.category.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+              slug: data.category.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+              createdAt: new Date(),
+              updatedAt: new Date()
             }
           }
         })
@@ -48,9 +52,20 @@ export async function POST(request) {
 
   } catch (error) {
     console.error('Error creating game:', error);
+    
+    // Handle specific Prisma errors
+    if (error.code === 'P2002') {
+      return NextResponse.json(
+        { error: 'A game with this title already exists' },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       { error: 'Failed to create game' },
       { status: 500 }
     );
+  } finally {
+    await prisma.$disconnect();
   }
 } 
