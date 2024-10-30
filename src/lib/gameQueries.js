@@ -6,6 +6,23 @@ prisma.$connect()
   .then(() => console.log('Database connected successfully'))
   .catch((error) => console.error('Database connection failed:', error));
 
+// Add a more robust error handler
+const handlePrismaOperation = async (operation, operationName) => {
+  try {
+    console.log(`Starting ${operationName}...`);
+    const result = await operation();
+    console.log(`${operationName} completed successfully`);
+    return result;
+  } catch (error) {
+    console.error(`Error in ${operationName}:`, {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
+    throw new Error(`Database operation '${operationName}' failed: ${error.message}`);
+  }
+};
+
 export async function getAllGames() {
   return await prisma.game.findMany({});
 }
@@ -87,6 +104,8 @@ export async function getGamesBySelectedCategories(categoryIds) {
 
 export async function getGamesByCategoryId(categoryId) {
   return handlePrismaOperation(async () => {
+    console.log(`Fetching category with ID: ${categoryId}`);
+    
     const category = await prisma.category.findUnique({
       where: {
         id: categoryId,
@@ -111,19 +130,30 @@ export async function getGamesByCategoryId(categoryId) {
       },
     });
 
-    console.log('Retrieved category:', JSON.stringify(category, null, 2));
-
     if (!category) {
-      console.error(`No category found with ID: ${categoryId}`);
-      return null;
+      throw new Error(`Category with ID ${categoryId} not found`);
     }
 
+    console.log(`Found category: ${category.title} with ${category.games?.length || 0} games`);
     return category;
-  });
+  }, 'getGamesByCategoryId');
 }
 
 export async function getGameCategories() {
-  return await prisma.category.findMany({});
+  return handlePrismaOperation(async () => {
+    const categories = await prisma.category.findMany({
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        image: true,
+        description: true
+      }
+    });
+
+    console.log(`Found ${categories?.length || 0} categories`);
+    return categories;
+  }, 'getGameCategories');
 }
 
 export async function getCategoryMenu() {
