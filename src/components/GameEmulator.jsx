@@ -9,7 +9,7 @@ export default function GameEmulator({ game }) {
     setStatus('loading');
     setError(null);
 
-    // Clear existing
+    // Clear existing scripts
     const existingScripts = document.querySelectorAll('[data-emulator-script]');
     existingScripts.forEach(script => script.remove());
 
@@ -18,10 +18,12 @@ export default function GameEmulator({ game }) {
       window.EJS_player = '#game';
       window.EJS_gameUrl = game.game_url;
       window.EJS_core = 'snes';
-      window.EJS_pathtodata = 'https://cdn.jsdelivr.net/gh/EmulatorJS/EmulatorJS@latest/data/';
+      window.EJS_pathtodata = 'https://www.emulatorjs.com/data/';
       window.EJS_startOnLoaded = true;
-      window.EJS_gamepad = false; // Disable gamepad to avoid the error
+      window.EJS_gamepad = false;
       window.EJS_settings = true;
+      window.EJS_CacheLimit = 1024;
+      window.EJS_defaultControls = true;
       window.EJS_Buttons = {
         playPause: true,
         restart: true,
@@ -30,24 +32,23 @@ export default function GameEmulator({ game }) {
         fullscreen: true,
         saveState: true,
         loadState: true,
-        screenshot: true,
       };
 
-      // First load the main script
-      const mainScript = document.createElement('script');
-      mainScript.src = 'https://cdn.jsdelivr.net/gh/EmulatorJS/EmulatorJS@latest/data/loader.js';
-      mainScript.setAttribute('data-emulator-script', 'true');
-      mainScript.async = true;
-      mainScript.onload = () => {
+      // Load emulator script
+      const script = document.createElement('script');
+      script.src = 'https://www.emulatorjs.com/data/loader.js';
+      script.setAttribute('data-emulator-script', 'true');
+      script.async = true;
+      script.onload = () => {
         console.log('Emulator loaded successfully');
         setStatus('ready');
       };
-      mainScript.onerror = (e) => {
+      script.onerror = (e) => {
         setError('Failed to load emulator');
         setStatus('error');
         console.error('Emulator load error:', e);
       };
-      document.body.appendChild(mainScript);
+      document.body.appendChild(script);
 
     } catch (err) {
       setError(err.message);
@@ -89,6 +90,15 @@ export default function GameEmulator({ game }) {
               Try Again
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Game URL Debug (remove in production) */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="mt-2 text-xs text-gray-500">
+          <p>Game URL: {game.game_url}</p>
+          <p>Status: {status}</p>
+          {error && <p className="text-red-400">Error: {error}</p>}
         </div>
       )}
     </div>
