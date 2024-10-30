@@ -28,6 +28,15 @@ export default async function Home() {
 
     return (
       <>
+        <div className="mb-6 text-center">
+          <a 
+            href="/game/add" 
+            className="inline-block bg-accent-gradient py-3 px-6 rounded-xl border border-yellow-400 uppercase hover:bg-accent/80 transition-colors"
+          >
+            🎮 Add Your Game
+          </a>
+        </div>
+
         <HeroSlider />
         {categories.length > 0 && <CategorySlider categories={categories} />}
         {category && <GameCategory category={category} />}
