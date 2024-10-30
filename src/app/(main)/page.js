@@ -6,16 +6,20 @@ import GameCategory from "@/components/GameCategory";
 import { getGameCategories, getGamesByCategoryId, getGamesBySelectedCategories } from "@/lib/gameQueries";
 
 export default async function Home() {
-  // Add error handling and null checks
   try {
     const [categories, category] = await Promise.all([
       getGameCategories(),
       getGamesByCategoryId(1)
     ]);
 
-    // Guard clause for null data
-    if (!categories || !category) {
-      return <div>Loading...</div>;
+    if (!categories || !Array.isArray(categories)) {
+      console.error('Categories data is invalid:', categories);
+      return <div>Error: Invalid categories data</div>;
+    }
+
+    if (!category || !category.title) {
+      console.error('Category data is invalid:', category);
+      return <div>Error: Invalid category data</div>;
     }
 
     const selectedCategoryIds = [1,2,5];
@@ -25,7 +29,7 @@ export default async function Home() {
       <>
         <HeroSlider />
         {categories.length > 0 && <CategorySlider categories={categories} />}
-        {category && <GameCategory category={category} />}
+        {category && category.games && <GameCategory category={category} />}
       </>
     );
   } catch (error) {
