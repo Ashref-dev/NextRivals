@@ -53,10 +53,17 @@ export default async function Page({ params }) {
         </ol>
       </nav>
 
-      {/* Game Emulator */}
-      <Suspense fallback={<div className="aspect-video bg-secondary rounded-lg animate-pulse" />}>
-        <GameEmulator game={game} />
-      </Suspense>
+      <div className="max-w-4xl mx-auto">
+        <Suspense 
+          fallback={
+            <div className="aspect-video bg-secondary rounded-lg animate-pulse flex items-center justify-center">
+              <p className="text-gray-500">Loading game...</p>
+            </div>
+          }
+        >
+          <GameEmulator game={game} />
+        </Suspense>
+      </div>
 
       {/* Comments */}
       <div className="mt-8">
