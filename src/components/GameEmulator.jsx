@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react';
 
 const CORE_MAPPINGS = {
-  // Nintendo
   'nes': 'nes',
   'smc': 'snes',
   'sfc': 'snes',
@@ -11,10 +10,8 @@ const CORE_MAPPINGS = {
   'gb': 'gb',
   'gbc': 'gb',
   'gba': 'gba',
-  // Sega
   'md': 'segaMD',
   'gen': 'segaMD',
-  // Sony
   'iso': 'psx',
   'bin': 'psx'
 };
@@ -32,50 +29,65 @@ export default function GameEmulator({ game }) {
     setStatus('loading');
     setError(null);
 
-    try {
-      // Configure EmulatorJS
-      window.EJS_player = '#game';
-      window.EJS_gameUrl = game.game_url;
-      window.EJS_core = detectCore(game.game_url);
-      window.EJS_pathtodata = 'https://cdn.jsdelivr.net/gh/EmulatorJS/EmulatorJS@latest/data/';
-      window.EJS_startOnLoaded = true;
-      window.EJS_Settings = true;
-      window.EJS_Buttons = {
-        playPause: true,
-        restart: true,
-        mute: true,
-        settings: true,
-        fullscreen: true,
-        saveState: true,
-        loadState: true,
-        screenRecord: true,
-        screenshot: true,
-      };
+    const loadEmulator = async () => {
+      try {
+        // Clear any existing scripts
+        document.querySelectorAll('[data-emulator-script]').forEach(script => script.remove());
 
-      // Load EmulatorJS script
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/gh/EmulatorJS/EmulatorJS@latest/data/loader.js';
-      script.async = true;
-      script.onload = () => {
-        console.log('Emulator loaded successfully');
-        setStatus('ready');
-      };
-      script.onerror = (e) => {
-        setError('Failed to load emulator');
+        // Configure EmulatorJS
+        window.EJS_player = '#game';
+        window.EJS_gameUrl = game.game_url;
+        window.EJS_core = detectCore(game.game_url);
+        window.EJS_pathtodata = 'https://cdn.jsdelivr.net/gh/EmulatorJS/EmulatorJS@latest/data/';
+        window.EJS_startOnLoaded = true;
+        window.EJS_Settings = true;
+        window.EJS_gamepad = false; // Disable gamepad to avoid the error
+        window.EJS_Buttons = {
+          playPause: true,
+          restart: true,
+          mute: true,
+          settings: true,
+          fullscreen: true,
+          saveState: true,
+          loadState: true,
+          screenshot: true,
+        };
+
+        // First load the gamepad handler
+        const gamepadScript = document.createElement('script');
+        gamepadScript.src = 'https://cdn.jsdelivr.net/gh/EmulatorJS/EmulatorJS@latest/data/gamepad.js';
+        gamepadScript.setAttribute('data-emulator-script', 'true');
+        await new Promise((resolve, reject) => {
+          gamepadScript.onload = resolve;
+          gamepadScript.onerror = reject;
+          document.body.appendChild(gamepadScript);
+        });
+
+        // Then load the main emulator
+        const emulatorScript = document.createElement('script');
+        emulatorScript.src = 'https://cdn.jsdelivr.net/gh/EmulatorJS/EmulatorJS@latest/data/loader.js';
+        emulatorScript.setAttribute('data-emulator-script', 'true');
+        await new Promise((resolve, reject) => {
+          emulatorScript.onload = () => {
+            console.log('Emulator loaded successfully');
+            setStatus('ready');
+            resolve();
+          };
+          emulatorScript.onerror = reject;
+          document.body.appendChild(emulatorScript);
+        });
+
+      } catch (err) {
+        setError(err.message || 'Failed to load emulator');
         setStatus('error');
-        console.error('Emulator load error:', e);
-      };
-      document.body.appendChild(script);
+        console.error('Emulator error:', err);
+      }
+    };
 
-    } catch (err) {
-      setError(err.message);
-      setStatus('error');
-      console.error('Setup error:', err);
-    }
+    loadEmulator();
 
     return () => {
-      const scripts = document.querySelectorAll('script[src*="EmulatorJS"]');
-      scripts.forEach(script => script.remove());
+      document.querySelectorAll('[data-emulator-script]').forEach(script => script.remove());
     };
   }, [game.game_url]);
 

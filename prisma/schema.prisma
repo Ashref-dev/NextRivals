@@ -12,24 +12,24 @@ datasource db {
 }
 
 model Game {
-  id          Int        @id @default(autoincrement())
-  title       String
-  slug        String     @unique
-  description String
-  image       String
-  game_url    String
-  published   Boolean
-  created_at  DateTime   @default(now())
-  categories  Category[]
+  id        String     @id @default(cuid())
+  title     String
+  slug      String     @unique
+  game_url  String?
+  image     String?
+  published Boolean    @default(false)
+  categories Category[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
 
 model Category {
-  id    Int    @id @default(autoincrement())
-  title String
-  slug  String
-  core  String
-  image String @default("default_image.png")
-  games Game[]
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  games     Game[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model User {
