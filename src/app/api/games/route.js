@@ -21,7 +21,7 @@ export async function POST(request) {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
 
-    // Create the game with all required fields
+    // Create the game
     const game = await prisma.game.create({
       data: {
         title: data.title,
@@ -29,16 +29,12 @@ export async function POST(request) {
         game_url: data.game_url || '',
         image: data.image || '',
         published: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
         // Add category if provided
         ...(data.category && {
           categories: {
             create: {
               title: data.category,
-              slug: data.category.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-              createdAt: new Date(),
-              updatedAt: new Date()
+              slug: data.category.toLowerCase().replace(/[^a-z0-9]+/g, '-')
             }
           }
         })
