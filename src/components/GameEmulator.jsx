@@ -10,10 +10,8 @@ export default function GameEmulator({ game }) {
     setError(null);
 
     // Clear existing
-    const existingScript = document.getElementById('emulatorScript');
-    if (existingScript) {
-      existingScript.remove();
-    }
+    const existingScripts = document.querySelectorAll('[data-emulator-script]');
+    existingScripts.forEach(script => script.remove());
 
     try {
       // Configure emulator
@@ -22,24 +20,34 @@ export default function GameEmulator({ game }) {
       window.EJS_core = 'snes';
       window.EJS_pathtodata = 'https://cdn.jsdelivr.net/gh/EmulatorJS/EmulatorJS@latest/data/';
       window.EJS_startOnLoaded = true;
-      window.EJS_gamepad = true;
+      window.EJS_gamepad = false; // Disable gamepad to avoid the error
       window.EJS_settings = true;
+      window.EJS_Buttons = {
+        playPause: true,
+        restart: true,
+        mute: true,
+        settings: true,
+        fullscreen: true,
+        saveState: true,
+        loadState: true,
+        screenshot: true,
+      };
 
-      // Load emulator script
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/gh/EmulatorJS/EmulatorJS@latest/data/loader.js';
-      script.id = 'emulatorScript';
-      script.async = true;
-      script.onload = () => {
+      // First load the main script
+      const mainScript = document.createElement('script');
+      mainScript.src = 'https://cdn.jsdelivr.net/gh/EmulatorJS/EmulatorJS@latest/data/loader.js';
+      mainScript.setAttribute('data-emulator-script', 'true');
+      mainScript.async = true;
+      mainScript.onload = () => {
         console.log('Emulator loaded successfully');
         setStatus('ready');
       };
-      script.onerror = (e) => {
+      mainScript.onerror = (e) => {
         setError('Failed to load emulator');
         setStatus('error');
         console.error('Emulator load error:', e);
       };
-      document.body.appendChild(script);
+      document.body.appendChild(mainScript);
 
     } catch (err) {
       setError(err.message);
@@ -49,9 +57,8 @@ export default function GameEmulator({ game }) {
 
     // Cleanup
     return () => {
-      if (document.getElementById('emulatorScript')) {
-        document.getElementById('emulatorScript').remove();
-      }
+      const scripts = document.querySelectorAll('[data-emulator-script]');
+      scripts.forEach(script => script.remove());
     };
   }, [game.game_url]);
 
