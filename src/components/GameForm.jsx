@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function GameForm({ categories }) {
+export default function GameForm() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -10,7 +10,7 @@ export default function GameForm({ categories }) {
     title: '',
     game_url: '',
     image: '',
-    categoryIds: []
+    category: ''
   });
 
   const handleSubmit = async (e) => {
@@ -26,7 +26,7 @@ export default function GameForm({ categories }) {
         },
         body: JSON.stringify({
           ...formData,
-          published: true // Auto-publish submitted games
+          published: true
         }),
       });
 
@@ -88,23 +88,15 @@ export default function GameForm({ categories }) {
       </div>
 
       <div>
-        <label className="block mb-2">Categories</label>
-        <select
-          multiple
-          value={formData.categoryIds}
-          onChange={(e) => setFormData({
-            ...formData,
-            categoryIds: Array.from(e.target.selectedOptions, option => option.value)
-          })}
+        <label className="block mb-2">Category *</label>
+        <input
+          type="text"
+          value={formData.category}
+          onChange={(e) => setFormData({...formData, category: e.target.value})}
           className="w-full p-3 rounded bg-primary border border-accent-secondary"
-        >
-          {categories.map(category => (
-            <option key={category.id} value={category.id}>
-              {category.title}
-            </option>
-          ))}
-        </select>
-        <p className="text-sm text-gray-400 mt-1">Hold Ctrl/Cmd to select multiple</p>
+          required
+          placeholder="Enter category (e.g., Action, Adventure, RPG)"
+        />
       </div>
 
       <button

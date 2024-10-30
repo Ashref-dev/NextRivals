@@ -12,26 +12,51 @@ export async function POST(request) {
     if (!data.game_url?.trim()) {
       return Response.json({ error: 'Game URL is required' }, { status: 400 });
     }
+    if (!data.category?.trim()) {
+      return Response.json({ error: 'Category is required' }, { status: 400 });
+    }
 
     // Create slug from title
-    const slug = data.title
+    const gameSlug = data.title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
 
+    // Create category slug
+    const categorySlug = data.category
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+
+    // Find or create category
+    const category = await prisma.category.upsert({
+      where: {
+        slug: categorySlug,
+      },
+      update: {},
+      create: {
+        title: data.category.trim(),
+        slug: categorySlug,
+      },
+    });
+
+    // Create game with category
     const game = await prisma.game.create({
       data: {
         title: data.title.trim(),
-        slug,
+        slug: gameSlug,
         game_url: data.game_url.trim(),
         image: data.image?.trim() || '',
         published: true,
-        ...(data.categoryIds?.length > 0 && {
-          categories: {
-            connect: data.categoryIds.map(id => ({ id: parseInt(id) }))
+        categories: {
+          connect: {
+            id: category.id
           }
-        })
+        }
       },
+      include: {
+        categories: true
+      }
     });
 
     return Response.json(game);
