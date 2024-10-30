@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import HeroSlider from "@/components/Sliders/HeroSlider";
 import CategorySlider from "@/components/Sliders/CategorySlider";
 import GameCategory from "@/components/GameCategory";
