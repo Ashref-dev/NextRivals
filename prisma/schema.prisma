@@ -12,24 +12,21 @@ datasource db {
 }
 
 model Game {
-  id        String     @id @default(cuid())
+  id        Int      @id @default(autoincrement())
   title     String
-  slug      String     @unique
+  slug      String   @unique
   game_url  String?
   image     String?
-  published Boolean    @default(false)
+  published Boolean  @default(false)
   categories Category[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
 }
 
 model Category {
-  id        String   @id @default(cuid())
+  id        Int      @id @default(autoincrement())
   title     String
   slug      String   @unique
+  image     String?
   games     Game[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model User {

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function GameForm() {
+export default function GameForm({ categories }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -10,7 +10,7 @@ export default function GameForm() {
     title: '',
     game_url: '',
     image: '',
-    category: ''
+    categoryIds: []
   });
 
   const handleSubmit = async (e) => {
@@ -24,19 +24,21 @@ export default function GameForm() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          published: true // Auto-publish submitted games
+        }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
+        const data = await response.json();
         throw new Error(data.error || 'Failed to add game');
       }
 
       router.push('/');
       router.refresh();
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -51,56 +53,66 @@ export default function GameForm() {
       )}
 
       <div>
-        <label className="block mb-2">Title *</label>
+        <label className="block mb-2">Game Title *</label>
         <input
           type="text"
           value={formData.title}
           onChange={(e) => setFormData({...formData, title: e.target.value})}
-          className="w-full p-3 rounded bg-secondary"
+          className="w-full p-3 rounded bg-primary border border-accent-secondary"
           required
           placeholder="Enter game title"
         />
       </div>
 
       <div>
-        <label className="block mb-2">Game URL</label>
+        <label className="block mb-2">Game URL *</label>
         <input
           type="url"
           value={formData.game_url}
           onChange={(e) => setFormData({...formData, game_url: e.target.value})}
-          className="w-full p-3 rounded bg-secondary"
-          placeholder="https://example.com/game.smc"
+          className="w-full p-3 rounded bg-primary border border-accent-secondary"
+          required
+          placeholder="https://..."
         />
       </div>
 
       <div>
         <label className="block mb-2">Image URL</label>
         <input
-          type="url"
+          type="text"
           value={formData.image}
           onChange={(e) => setFormData({...formData, image: e.target.value})}
-          className="w-full p-3 rounded bg-secondary"
-          placeholder="https://example.com/image.jpg"
+          className="w-full p-3 rounded bg-primary border border-accent-secondary"
+          placeholder="Image URL (optional)"
         />
       </div>
 
       <div>
-        <label className="block mb-2">Category</label>
-        <input
-          type="text"
-          value={formData.category}
-          onChange={(e) => setFormData({...formData, category: e.target.value})}
-          className="w-full p-3 rounded bg-secondary"
-          placeholder="e.g., SNES, Action, RPG"
-        />
+        <label className="block mb-2">Categories</label>
+        <select
+          multiple
+          value={formData.categoryIds}
+          onChange={(e) => setFormData({
+            ...formData,
+            categoryIds: Array.from(e.target.selectedOptions, option => option.value)
+          })}
+          className="w-full p-3 rounded bg-primary border border-accent-secondary"
+        >
+          {categories.map(category => (
+            <option key={category.id} value={category.id}>
+              {category.title}
+            </option>
+          ))}
+        </select>
+        <p className="text-sm text-gray-400 mt-1">Hold Ctrl/Cmd to select multiple</p>
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-accent text-black p-3 rounded font-medium hover:bg-accent/80 disabled:opacity-50"
+        className="w-full bg-accent text-black p-3 rounded-xl font-medium hover:bg-accent/80 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {loading ? 'Adding...' : 'Add Game'}
+        {loading ? 'Adding Game...' : 'Submit Game'}
       </button>
     </form>
   );
