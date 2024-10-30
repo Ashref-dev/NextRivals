@@ -146,8 +146,7 @@ export async function getGameCategories() {
         id: true,
         title: true,
         slug: true,
-        image: true,
-        description: true
+        image: true
       }
     });
 
